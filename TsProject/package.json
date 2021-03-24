@@ -1,0 +1,12 @@
+{
+    "name": "ts_project",
+    "version": "1.0.0",
+    "description": "ts project assets",
+    "scripts": {
+        "tscBuild": "tsc -p tsconfig.json",
+        "tscBuildWatch": "tsc -w -p tsconfig.json"
+    },
+    "devDependencies": {
+        "source-map-support": "^0.5.19"
+    }
+}
