@@ -33,12 +33,11 @@ public class JsWorker : MonoBehaviour, IDisposable
     //消息接口
     public Func<string, Package, Package> mainOnMessage { get; set; }
     public Func<string, Package, Package> childOnMessage { get; set; }
-    //线程初始完成, 且运行中
     public bool IsAlive
     {
         get
         {
-            return this != null && this.running &&
+            return this != null && this.working &&
                  this.thread != null && this.thread.IsAlive;
         }
     }
@@ -58,7 +57,7 @@ public class JsWorker : MonoBehaviour, IDisposable
     }
     //线程
     private Thread thread;
-    private bool running = false;
+    private bool working = false;
     //线程安全锁定
     private const int lockTimeout = 1000;
     private ReaderWriterLock locker;
@@ -95,15 +94,15 @@ public class JsWorker : MonoBehaviour, IDisposable
     }
     void Working(string filepath)
     {
-        if (this.JsEnv != null || this.thread != null || this.running)
-            throw new Exception("Thread is running, cannot start repeatedly!");
+        if (this.JsEnv != null || this.thread != null || this.working)
+            throw new Exception("Thread is working, cannot start repeatedly!");
         if (this.loader == null)
-            throw new Exception("Thread cannot start working, loader is null!");
+            throw new Exception("Thread cannot working, loader is null!");
         if (!this.enabled)
-            throw new Exception("Thread cannot start working, main thread is disable");
+            throw new Exception("Thread cannot working, main thread is disable");
 
         syncing = false;
-        running = true;
+        working = true;
         thread = new Thread(new ThreadStart(() =>
         {
             JsEnv jsEnv = null;
@@ -120,7 +119,7 @@ public class JsWorker : MonoBehaviour, IDisposable
                 jsEnv.Eval(JS_WORKER);
                 jsEnv.Eval<Action<JsWorker>>(@"(function (_w){ (this ?? globalThis)['globalWorker'] = new JsWorker(_w); })")(this);
                 jsEnv.Eval(string.Format("require(\"{0}\")", filepath));
-                while (running && jsEnv == JsEnv && this != null)
+                while (working && jsEnv == JsEnv && this != null)
                 {
                     jsEnv.Tick();
 
@@ -167,7 +166,7 @@ public class JsWorker : MonoBehaviour, IDisposable
     {
         mainOnMessage = null;
         childOnMessage = null;
-        running = false;
+        working = false;
         JsEnv = null;
         if (thread != null)
         {

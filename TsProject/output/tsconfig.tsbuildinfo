@@ -92,7 +92,7 @@
         "affectsGlobalScope": true
       },
       "../src/main.ts": {
-        "version": "7648e212ae7e3feb276c8cb699433f1e4749c2678c645ea4e8cd319921ef2352",
+        "version": "95577445189ae704845cc976cbd30b397acbfae52b59e67659a2e8e428d85d95",
         "signature": "f761c91419d0a89422a0004ef1a92929dd4d2d5e5c16758654d8b0467d1998c6",
         "affectsGlobalScope": false
       },
@@ -107,7 +107,7 @@
         "affectsGlobalScope": false
       },
       "../src/common/jsworker.ts": {
-        "version": "94f928dfcb7035de05fc7edde191723bf5823cb660bdd2a46903f322e367e2bc",
+        "version": "7d42c711d87f55c2d791f44fc127ad2faf08f53f0ff238f2de80b4ea264c6b01",
         "signature": "e9550086b9a3bc6852fc8fc939a33b61c63c2f3e73738be77636376261541d26",
         "affectsGlobalScope": true
       }
@@ -163,7 +163,17 @@
         "../../assets/puerts/typing/puerts/index.d.ts"
       ]
     },
-    "exportedModulesMap": {},
+    "exportedModulesMap": {
+      "../../assets/puerts/typing/puerts/index.d.ts": [
+        "../../assets/gen/typing/csharp/index.d.ts"
+      ],
+      "../src/common/generator.ts": [
+        "../../assets/gen/typing/csharp/index.d.ts"
+      ],
+      "../src/common/jsworker.ts": [
+        "../../assets/gen/typing/csharp/index.d.ts"
+      ]
+    },
     "semanticDiagnosticsPerFile": [
       "c:/users/layer/appdata/roaming/npm/node_modules/typescript/lib/lib.dom.d.ts",
       "c:/users/layer/appdata/roaming/npm/node_modules/typescript/lib/lib.dom.iterable.d.ts",

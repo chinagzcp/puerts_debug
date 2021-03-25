@@ -11,20 +11,20 @@ const REMOTE_EVENT = "__e_remote";
  */
 class JsWorker {
     public get isAlive() { return this.worker.IsAlive; }
-    public readonly isMain: boolean;
     private readonly worker: CS.JsWorker;
+    public readonly isMainThread: boolean;
     private readonly callbacks: Map<string, ((data?: any) => void)[]>;
     constructor(loader: CS.Puerts.ILoader | CS.JsWorker) {
         let worker: CS.JsWorker = undefined;
         if (loader instanceof CS.JsWorker) {
             worker = loader;
-            this.isMain = false;
+            this.isMainThread = false;
         } else {
             worker = CS.JsWorker.New(loader);
-            this.isMain = true;
+            this.isMainThread = true;
         }
         this.worker = worker;
-        this.worker.VerifySafety(this.isMain);
+        this.worker.VerifySafety(this.isMainThread);
         this.callbacks = new Map();
         this.working();
     }
@@ -48,7 +48,7 @@ class JsWorker {
                 return this.package(result);
             return undefined;
         };
-        if (this.isMain) {
+        if (this.isMainThread) {
             this.worker.mainOnMessage = (name, data) => {
                 switch (name) {
                     case CLOSE_EVENT:
@@ -240,15 +240,15 @@ class JsWorker {
         return result;
     }
     public start(filepath: string) {
-        if (globalWorker && globalWorker["worker"] == this.worker)
+        if (!this.isMainThread)
             throw new Error("Thread cannot called start");
 
         this.worker.Startup(filepath);
     }
     public dispose() {
-        let globalWorker = (function () { return this ?? globalThis; })()["globalWorker"];
-        if (globalWorker && globalWorker["worker"] == this.worker)
+        if (!this.isMainThread) {
             this.post(CLOSE_EVENT);
+        }
         else {
             this.callbacks.clear();
             this.worker.Dispose();
@@ -259,7 +259,7 @@ class JsWorker {
         if (data !== undefined && data !== null && data !== void 0) {
             o = this.package(data);
         }
-        if (this.isMain)
+        if (this.isMainThread)
             this.worker.CallChild(eventName, o);
         else
             this.worker.CallMain(eventName, o);
@@ -269,7 +269,7 @@ class JsWorker {
         if (data !== undefined && data !== null && data !== void 0) {
             o = this.package(data);
         }
-        if (this.isMain)
+        if (this.isMainThread)
             result = this.worker.Sync.CallChild(eventName, o);
         else
             result = this.worker.Sync.CallMain(eventName, o);
@@ -280,7 +280,7 @@ class JsWorker {
         return result;
     }
     public eval(chunk: string, chunkName?: string) {
-        if (globalWorker && globalWorker["worker"] == this.worker)
+        if (!this.isMainThread)
             throw new Error("Thread cannot called eval");
 
         this.worker.Eval(chunk, chunkName);
@@ -372,16 +372,17 @@ declare global {
 }
 
 //这里的代码, 主线程和子线程都会执行
+//JsWorker.cs子线程在创建JsEnv实例时会require此模块
 (function () {
     const id = CS.System.Threading.Thread.CurrentThread.ManagedThreadId;
     globalThis["thread_id"] = id;
 
     setInterval(() => {
         let nowId = CS.System.Threading.Thread.CurrentThread.ManagedThreadId;
-        console.log(`trhead=${id},\t state=running`);
 
+        console.log(`trhead=${id},\t working`);
         if (nowId !== id || nowId !== globalThis["thread_id"]) {
-            console.error(`thread=${id}, nowId=${nowId}, thread error`);
+            console.error(`thread=${id},\t nowId=${nowId}`);
         }
     }, 100);
 })();
